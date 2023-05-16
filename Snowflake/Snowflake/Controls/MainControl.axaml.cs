@@ -5,15 +5,17 @@ using Avalonia.Media;
 using System;
 using System.Drawing.Text;
 using System.Collections.Generic;
+using System.Threading;
+using Avalonia.Threading;
 
 namespace Snowflake.Controls
 {
     public partial class MainControl : UserControl
     {
-        Timer Timer;
-
         private int _minSide;
         private int _maxSide;
+
+        private bool firstTime = true;
 
         private double _scaling;
 
@@ -28,20 +30,21 @@ namespace Snowflake.Controls
 
             PropertyChanged += OnPropertyChangedListener;
 
-            for(int i = 0; i < 10; i++)
+            for(int i = 0; i < 100; i++)
             {
                 Snowflake.Add(new Snowflake.Snowflake());
             }
+            var threadFPS = new Thread(OnTimerTick);
+            threadFPS.Start();
+        }
 
-            Timer = new Timer(20);
-            Timer.AutoReset = true;
-            Timer.Enabled = true;
-            Timer.Elapsed += OnTimerTick;
-    }
-
-        private void OnTimerTick(object? sender, ElapsedEventArgs e)
+        private void OnTimerTick()
         {
-            InvalidateVisual();
+            while (true)
+            {
+                InvalidateVisual();
+                Thread.Sleep(33);
+            }
         }
 
         private void OnPropertyChangedListener(object sender, AvaloniaPropertyChangedEventArgs e)
@@ -71,12 +74,25 @@ namespace Snowflake.Controls
 
             foreach (var item in Snowflake)
             {
+                if (firstTime)
+                {
+                    Thread thread = new Thread(SnowflakeFall);
+                    thread.Start();
+                }
                 context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X - 30, item.Y), new Point(item.X + 30, item.Y));
                 context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X, item.Y - 30), new Point(item.X, item.Y + 30));
                 context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X - 20, item.Y + 20), new Point(item.X + 20, item.Y - 20));
                 context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X + 20, item.Y + 20), new Point(item.X - 20, item.Y - 20));
-                item.Fall();
+                void SnowflakeFall()
+                {
+                    while (true)
+                    {
+                        item.Fall(context);
+                        Thread.Sleep(33);
+                    }
+                }
             }
+            firstTime = false;
         }
     }
 }
