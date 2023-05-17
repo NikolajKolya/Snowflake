@@ -21,13 +21,13 @@ namespace Snowflake.Snowflake
             Speed = RandomGenerator.Next(10, 100);
         }
 
-        public void Fall(DrawingContext context)
+        public void Fall(int width, int height)
         {
             Y += Speed;
-            if (Y > 450) {
+            if (Y > height + 20) {
                 Y = -10;
-                X = RandomGenerator.Next(0, 800);
-                Speed = RandomGenerator.Next(10, 100);
+                X = RandomGenerator.Next(0, width);
+                Speed = RandomGenerator.Next(5, 60);
             }
         }
     }

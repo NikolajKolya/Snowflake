@@ -12,17 +12,24 @@ namespace Snowflake.Controls
 {
     public partial class MainControl : UserControl
     {
-        private int _minSide;
-        private int _maxSide;
-
-        private bool firstTime = true;
 
         private double _scaling;
 
-        private int _width = 800;
+        private bool isProgramStartedForTheFirstTime = true;
+
+        #region constants
+        private const int snowflakeSize = 30;
+        private const double obliqueSnowflakeSize = 2 / 3.0 * snowflakeSize;
+
+        private const int fps = 33;
+
+        private readonly Pen snowFlakeThickness = new Pen(new SolidColorBrush(new Color(150, 255, 255, 255)), 5);
+        #endregion
+
+        private int _width;
         private int _height;
+
         private List<Snowflake.Snowflake> Snowflake = new List<Snowflake.Snowflake>();
-        private SolidColorBrush SnowflakeColor = new SolidColorBrush(Colors.SkyBlue);
 
         public MainControl()
         {
@@ -43,15 +50,14 @@ namespace Snowflake.Controls
             while (true)
             {
                 InvalidateVisual();
-                Thread.Sleep(33);
+                Thread.Sleep(fps);
             }
         }
 
         private void OnPropertyChangedListener(object sender, AvaloniaPropertyChangedEventArgs e)
         {
-            if (e.Property.Name.Equals("Bounds")) // Если меняется размер окна
+            if (e.Property.Name.Equals("Bounds"))
             {
-                // Обработать изменение размера
                 OnResize((Rect)e.NewValue);
             }
         }
@@ -62,9 +68,6 @@ namespace Snowflake.Controls
 
             _width = (int)(bounds.Width * _scaling);
             _height = (int)(bounds.Height * _scaling);
-
-            _minSide = Math.Min(_width, _height);
-            _maxSide = Math.Max(_width, _height);
         }
 
         public override void Render(DrawingContext context)
@@ -74,25 +77,27 @@ namespace Snowflake.Controls
 
             foreach (var item in Snowflake)
             {
-                if (firstTime)
+                if (isProgramStartedForTheFirstTime)
                 {
                     Thread thread = new Thread(SnowflakeFall);
                     thread.Start();
                 }
-                context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X - 30, item.Y), new Point(item.X + 30, item.Y));
-                context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X, item.Y - 30), new Point(item.X, item.Y + 30));
-                context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X - 20, item.Y + 20), new Point(item.X + 20, item.Y - 20));
-                context.DrawLine(new Pen(new SolidColorBrush(new Color(100, 255, 255, 255)), 5), new Point(item.X + 20, item.Y + 20), new Point(item.X - 20, item.Y - 20));
+                context.DrawLine(snowFlakeThickness, new Point(item.X - snowflakeSize, item.Y), new Point(item.X + snowflakeSize, item.Y));
+                context.DrawLine(snowFlakeThickness, new Point(item.X, item.Y - snowflakeSize), new Point(item.X, item.Y + snowflakeSize));
+                context.DrawLine(snowFlakeThickness, new Point(item.X - obliqueSnowflakeSize, item.Y + obliqueSnowflakeSize), new Point(item.X + obliqueSnowflakeSize, item.Y - obliqueSnowflakeSize));
+                context.DrawLine(snowFlakeThickness, new Point(item.X + obliqueSnowflakeSize, item.Y + obliqueSnowflakeSize), new Point(item.X - obliqueSnowflakeSize, item.Y - obliqueSnowflakeSize));
                 void SnowflakeFall()
                 {
                     while (true)
                     {
-                        item.Fall(context);
-                        Thread.Sleep(33);
+                        item.Fall(_width, _height);
+                        Thread.Sleep(fps);
                     }
                 }
             }
-            firstTime = false;
+            isProgramStartedForTheFirstTime = false;
         }
     }
 }
+
+
