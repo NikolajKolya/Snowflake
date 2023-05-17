@@ -39,10 +39,12 @@ namespace Snowflake.Controls
                 _snowflakes.Add(snowflake);
 
                 var snowflakeThread = new Thread(snowflake.SnowflakeFallLoop);
+                snowflakeThread.IsBackground = true;
                 snowflakeThread.Start();
             }
 
             var threadFPS = new Thread(OnNextFrame);
+            threadFPS.IsBackground = true;
             threadFPS.Start();
         }
 
