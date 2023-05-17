@@ -15,21 +15,16 @@ namespace Snowflake.Controls
 
         private double _scaling;
 
-        private bool isProgramStartedForTheFirstTime = true;
-
         #region constants
-        private const int snowflakeSize = 30;
-        private const double obliqueSnowflakeSize = 2 / 3.0 * snowflakeSize;
 
-        private const int fps = 33;
+        private const int fps = 10;
 
-        private readonly Pen snowFlakeThickness = new Pen(new SolidColorBrush(new Color(150, 255, 255, 255)), 5);
         #endregion
 
         private int _width;
         private int _height;
 
-        private List<Snowflake.Snowflake> Snowflakes = new List<Snowflake.Snowflake>();
+        private List<Snowflake.Snowflake> _snowflakes = new List<Snowflake.Snowflake>();
 
         public MainControl()
         {
@@ -39,8 +34,14 @@ namespace Snowflake.Controls
 
             for(int i = 0; i < 100; i++)
             {
-                Snowflakes.Add(new Snowflake.Snowflake());
+                var snowflake = new Snowflake.Snowflake();
+
+                _snowflakes.Add(snowflake);
+
+                var snowflakeThread = new Thread(snowflake.SnowflakeFallLoop);
+                snowflakeThread.Start();
             }
+
             var threadFPS = new Thread(OnNextFrame);
             threadFPS.Start();
         }
@@ -68,36 +69,21 @@ namespace Snowflake.Controls
 
             _width = (int)(bounds.Width * _scaling);
             _height = (int)(bounds.Height * _scaling);
+
+            foreach (var snowflake in _snowflakes)
+            {
+                snowflake.OnResize(_width, _height);
+            }
         }
 
         public override void Render(DrawingContext context)
         {
             base.Render(context);
 
-
-            foreach (var item in Snowflakes)
+            foreach (var snowflake in _snowflakes)
             {
-                if (isProgramStartedForTheFirstTime)
-                {
-                    Thread thread = new Thread(SnowflakeFall);
-                    thread.Start();
-                }
-
-                context.DrawLine(snowFlakeThickness, new Point(item.X - snowflakeSize, item.Y), new Point(item.X + snowflakeSize, item.Y));
-                context.DrawLine(snowFlakeThickness, new Point(item.X, item.Y - snowflakeSize), new Point(item.X, item.Y + snowflakeSize));
-                context.DrawLine(snowFlakeThickness, new Point(item.X - obliqueSnowflakeSize, item.Y + obliqueSnowflakeSize), new Point(item.X + obliqueSnowflakeSize, item.Y - obliqueSnowflakeSize));
-                context.DrawLine(snowFlakeThickness, new Point(item.X + obliqueSnowflakeSize, item.Y + obliqueSnowflakeSize), new Point(item.X - obliqueSnowflakeSize, item.Y - obliqueSnowflakeSize));
-
-                void SnowflakeFall()
-                {
-                    while (true)
-                    {
-                        item.Fall(_width, _height);
-                        Thread.Sleep(fps);
-                    }
-                }
+                snowflake.Draw(context);
             }
-            isProgramStartedForTheFirstTime = false;
         }
     }
 }
