@@ -29,7 +29,7 @@ namespace Snowflake.Controls
         private int _width;
         private int _height;
 
-        private List<Snowflake.Snowflake> Snowflake = new List<Snowflake.Snowflake>();
+        private List<Snowflake.Snowflake> Snowflakes = new List<Snowflake.Snowflake>();
 
         public MainControl()
         {
@@ -39,13 +39,13 @@ namespace Snowflake.Controls
 
             for(int i = 0; i < 100; i++)
             {
-                Snowflake.Add(new Snowflake.Snowflake());
+                Snowflakes.Add(new Snowflake.Snowflake());
             }
-            var threadFPS = new Thread(OnTimerTick);
+            var threadFPS = new Thread(OnNextFrame);
             threadFPS.Start();
         }
 
-        private void OnTimerTick()
+        private void OnNextFrame()
         {
             while (true)
             {
@@ -75,17 +75,19 @@ namespace Snowflake.Controls
             base.Render(context);
 
 
-            foreach (var item in Snowflake)
+            foreach (var item in Snowflakes)
             {
                 if (isProgramStartedForTheFirstTime)
                 {
                     Thread thread = new Thread(SnowflakeFall);
                     thread.Start();
                 }
+
                 context.DrawLine(snowFlakeThickness, new Point(item.X - snowflakeSize, item.Y), new Point(item.X + snowflakeSize, item.Y));
                 context.DrawLine(snowFlakeThickness, new Point(item.X, item.Y - snowflakeSize), new Point(item.X, item.Y + snowflakeSize));
                 context.DrawLine(snowFlakeThickness, new Point(item.X - obliqueSnowflakeSize, item.Y + obliqueSnowflakeSize), new Point(item.X + obliqueSnowflakeSize, item.Y - obliqueSnowflakeSize));
                 context.DrawLine(snowFlakeThickness, new Point(item.X + obliqueSnowflakeSize, item.Y + obliqueSnowflakeSize), new Point(item.X - obliqueSnowflakeSize, item.Y - obliqueSnowflakeSize));
+
                 void SnowflakeFall()
                 {
                     while (true)
